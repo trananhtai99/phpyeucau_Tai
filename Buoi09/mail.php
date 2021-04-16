@@ -7,13 +7,12 @@ use PHPMailer\PHPMailer\Exception;
 
 //Load Composer's autoloader
 require 'vendor/autoload.php';
-
+require_once 'libs/Validate.class.php';
 //Instantiation and passing `true` enables exceptions
 $mail = new PHPMailer(true);
 
 try {
     //Server settings
-    $mail -> charSet = "UTF-8";
     $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      //Enable verbose debug output
     $mail->isSMTP();                                            //Send using SMTP
     $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
@@ -27,7 +26,7 @@ try {
     $mail->setFrom('xxanhtaixx2510@gmail.com', 'Anh Tai');
     $mail->addAddress('sang.hmtraining@gmail.com', 'sang');     //Add a recipient
     $mail->addReplyTo('info@example.com', 'Information');
-    
+    $mail->addCC('2ntuan@gmail.com');
 
     //Content
     $mail->isHTML(true);                                  //Set email format to HTML

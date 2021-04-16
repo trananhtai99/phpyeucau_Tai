@@ -1,82 +1,60 @@
-<!-- name: required, từ 10 -> 100 ký tự
-title: required, từ 10 -> 100 ký tự
-email: required, phải là email
-content: required, từ 10 -> 500 ký tự -->
-<?php require_once 'libs/Validate.class.php';
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
-
-//Load Composer's autoloader
-require 'vendor/autoload.php';
-if (isset($_POST['name'])) {
-    $name = $_POST['name'];
-
-    $source    = $_POST;
-    $validate = new Validate($source);
-
-    $validate->addRule('name', 'string', 10, 100)
-            ->addRule('title', 'string', 10, 100)
-            ->addRule('email', 'email')
-            ->addRule('message', 'string', 10, 500);
-
-    $validate->run();
-
-    $error          = $validate->getError();
-    $result         = $validate->getResult();
-    $errorMessage   = $validate->showErrors();
-    
-    if (empty($error)) {
-
-        //Instantiation and passing `true` enables exceptions
-        $mail = new PHPMailer(true);
-
-        try {
-            //Server settings
-            $mail -> charSet = "UTF-8";
-            $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      //Enable verbose debug output
-            $mail->isSMTP();                                            //Send using SMTP
-            $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
-            $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-            $mail->Username   = 'xxanhtaixx2510@gmail.com';                     //SMTP username
-            $mail->Password   = 'tat991025';                               //SMTP password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
-            $mail->Port       = 587;                                    //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
-
-            //Recipients
-            $mail->setFrom('xxanhtaixx2510@gmail.com', 'Anh Tai');
-            $mail->addAddress('sang.hmtraining@gmail.com', 'sang');     //Add a recipient
-
-            //Content
-            $mail->isHTML(true);                                  //Set email format to HTML
-            $mail->Subject = $_POST['title'];
-            $mail->Body    = $_POST['message'];
-            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
-
-            $mail->send();
-            echo 'Message has been sent';
-        } catch (Exception $e) {
-            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-        }
-    }
-
-    
-}
-
-?>
 <!DOCTYPE html>
 <html dir="ltr" lang="en-US">
 
 <head>
-    <?php require_once 'html/head.php'; ?>
+    <?php require_once 'html/head.php'; 
+    require_once 'vendor/autoload.php';
+    require_once 'libs/Mailer.class.php';
+    ?>
 
 </head>
 
 <body class="stretched">
 
     <div id="wrapper" class="clearfix">
-        <?php require_once 'html/header.php' ?>
+        <?php require_once 'html/header.php';
+            error_reporting(E_ALL & ~E_NOTICE);
+            $result = array();
+            $errors = '';
+            
+            if (!empty($_POST)) {
+                
+                $source = $_POST;
+
+                require_once 'libs/Validate.class.php';
+                $validate = new Validate($source);
+                $mail = new Mail($source);
+
+                // Rule
+                $validate->addRule('name', 'string', 10, 100)
+                    ->addRule('email', 'email')
+                    ->addRule('title', 'string', 10, 100)
+                    ->addRule('content', 'string', 10, 1000);
+
+                // Run
+                $validate->run();
+                $errors = $validate->showErrors();
+                $result = $validate->getResult();
+                $flag = false;
+                    
+                if (empty($errors)) {                   
+                    $mail->sendMail($source, 'send-email-from-user');   
+                    $mail->conTent($source, 'send-email-from-user');
+                    $mail->send();
+                    $messEmail = 'Tin nhắn đã gửi thành công';
+                    $flag = true;
+                } else {
+                    $messEmail = "Tin nhắn gửi không thành công";            
+                } 
+            }
+
+            if(@$flag == true){   
+                $mail2 = new Mail($source); 
+                $mail2->sendMail($source, 'send-email-from-admin'); 
+                $mail2->conTent($source, 'send-email-from-admin');
+                $mail2->send();
+            }
+        ?>
 
         <section id="page-title">
 
